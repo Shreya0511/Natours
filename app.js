@@ -23,14 +23,14 @@ app.set('views', path.join(__dirname, 'views'));
 
 /// 1) Global Middlewares
 //set security HTTP Header
-// app.use(helmet({
-//     contentSecurityPolicy: {
-//       directives: {
-//         defaultSrc: ["'self'"],
-//         connectSrc: ["'self'", 'http://127.0.0.1:8000', 'ws://localhost:42877/']
-//       }
-//     }
-//   }));
+app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: ["'self'", 'http://127.0.0.1:8000', 'ws://localhost:42877/']
+      }
+    }
+  }));
 //Development Logging
 if(process.env.NODE_ENV === 'development'){
     app.use(morgan('dev'));

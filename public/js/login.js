@@ -6,7 +6,6 @@ import { showAlert } from './alerts';
 
 
 export const login = async (email, password) => {
-  console.log(email, password);
   try {
     const res = await axios({
       method: 'POST',
@@ -24,8 +23,7 @@ export const login = async (email, password) => {
       }, 1500);
     }
   } catch (err) {
-    console.log('kuch kro na please');
-  showAlert('error', 'kuch to ho gaya');
+  showAlert('error', err);
   }
 };
 
