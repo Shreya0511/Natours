@@ -1,100 +1,116 @@
-const path = require('path');
-const fs = require('fs');
-const express = require('express');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
-const hpp = require('hpp');
+import path from "path";
+import express from "express";
+import morgan from "morgan"; // morgan is logging middleware. That's gonna allow us to see request data in the console
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
+import hpp from "hpp";
+import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
+import compression from "compression";
+import cors from "cors";
 
-const tourRouter = require('./routes/tourRouters');
-const userRouter = require('./routes/userRouters');
-const reviewRouter = require('./routes/reviewRouters');
-const viewRouter = require('./routes/viewRouters');
-const globalErrorHandler = require('./Controllers/errorController');
-const AppError = require('./Utils/appError');
-const cookieParser = require('cookie-parser');
+import AppError from "./utils/appError.js";
+import globalErrorHandler from "./controllers/errorController.js";
+import tourRouter from "./routes/tourRoutes.js";
+import userRouter from "./routes/userRoutes.js";
+import reviewRouter from "./routes/reviewRoutes.js";
+import bookingRouter from "./routes/bookingRoutes.js";
+import * as bookingController from "./controllers/bookingController.js";
+import viewRouter from "./routes/viewRoutes.js";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+
+const __dirname = path.dirname(__filename);
+
+// Start express app
 const app = express();
 
-app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, 'views'));
+app.enable("trust proxy");
 
+app.set("view engine", "pug");
+app.set("views", path.join(__dirname, "views"));
 
-/// 1) Global Middlewares
-//set security HTTP Header
-app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        connectSrc: ["'self'", 'http://127.0.0.1:8000', 'ws://localhost:42877/']
-      }
-    }
-  }));
-//Development Logging
-if(process.env.NODE_ENV === 'development'){
-    app.use(morgan('dev'));
+// 1) GLOBAL MIDDLEWARES
+// Implement CORS
+app.use(cors());
+
+app.options("*", cors());
+// app.options('/api/v1/tours/:id', cors());
+
+// Serving static files
+app.use(express.static(path.join(__dirname, "public")));
+
+// Set security HTTP headers
+app.use(helmet());
+
+// Development logging
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
 }
-// app.use(morgan('tiny')); //it basically us to print req object on console.
 
-//Body parser, reading data from body into req.body
-app.use(express.json({limit : '10kb'}));
-app.use(cookieParser());
-//Data sanitization against NoSql query injection
-app.use(mongoSanitize()); //it will basically remove all the dollar signs or other signs which could be malicious
-//from the req body and query
-
-//Data sanitization against xss
-app.use(xss()); //it prevents from converting html sent in the request to avoid malicious activity.
-
-//Prevent Parameter Pollution
-app.use(hpp({
-    whitelist : [
-      'duration',
-      'ratingsQuantity',
-      'rantingsAverage',
-      'maxGroupSize',
-      'difficulty',
-      'price'
-    ]
-}
-));
-
-//serving static files as routes.
-app.use(express.static(path.join(__dirname, 'public')));
-//is any static file name is hit which doesn't match any of the specified routers(url) then it will 
-//go to the above mentioned location and will search for the file there and send the same as res object
-
-
-app.use((req, res, next) => {
-    req.requestTime = new Date().toISOString();
-    next();
-});
-
-//Limit requests from same API.
+// Limit requests from same API
 const limiter = rateLimit({
-    max : 100,
-    windowMs : 60 * 60 * 1000,
-    message : 'Too many Requests!! Please try after some time.'
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: "Too many requests from this IP, please try again in an hour!"
+});
+app.use("/api", limiter);
+
+// Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
+app.post(
+  "/webhook-checkout",
+  bodyParser.raw({ type: "application/json" }),
+  bookingController.webhookCheckout
+);
+
+// Body parser, reading data from body into req.body
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(cookieParser());
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
+
+// Prevent parameter pollution
+app.use(
+  hpp({
+    whitelist: [
+      "duration",
+      "ratingsQuantity",
+      "ratingsAverage",
+      "maxGroupSize",
+      "difficulty",
+      "price"
+    ]
+  })
+);
+
+app.use(compression());
+
+// Test middleware
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  // console.log(req.cookies);
+  next();
 });
 
-app.use('/api', limiter);
+// 3) ROUTES
+app.use("/", viewRouter);
+app.use("/api/v1/tours", tourRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/reviews", reviewRouter);
+app.use("/api/v1/bookings", bookingRouter);
 
-//3) Routes
-
-
-app.use('/', viewRouter);
-app.use('/api/v1/tours', tourRouter);
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/reviews',reviewRouter);
-//This is called mounting because it is kind of something like we are mounting routes inside router
-
-app.all('*', (req, res, next) => {
-    next(new AppError(`Can't find ${req.originalUrl} on this Server!!`, 404));
+app.all("*", (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 app.use(globalErrorHandler);
 
-module.exports = app;
-
-
+export default app;
