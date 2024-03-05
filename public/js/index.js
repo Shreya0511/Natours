@@ -4,7 +4,7 @@ import { displayMap } from "./mapbox";
 import { signup } from "./signup";
 import { login, logout } from "./login";
 import { updateSettings } from "./updateSettings";
-import { bookTour } from "./stripe";
+// import { bookTour } from "./stripe";
 import { showAlert } from "./alerts";
 
 // DOM ELEMENTS
@@ -72,12 +72,12 @@ if (userPasswordForm)
     document.getElementById("password-confirm").value = "";
   });
 
-if (bookBtn)
-  bookBtn.addEventListener("click", e => {
-    e.target.textContent = "Processing...";
-    const { tourId } = e.target.dataset;
-    bookTour(tourId);
-  });
+// if (bookBtn)
+//   bookBtn.addEventListener("click", e => {
+//     e.target.textContent = "Processing...";
+//     const { tourId } = e.target.dataset;
+//     bookTour(tourId);
+//   });
 
 const alertMessage = document.querySelector("body").dataset.alert;
 if (alertMessage) showAlert("success", alertMessage, 20);

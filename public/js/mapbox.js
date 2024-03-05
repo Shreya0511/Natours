@@ -1,5 +1,5 @@
 /* eslint-disable */
-import keys from "../../config/keys";
+// import keys from "../../config/keys";
 
 export const displayMap = locations => {
   mapboxgl.accessToken = keys.mapBoxAccessToken;
