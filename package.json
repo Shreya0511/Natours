@@ -8,7 +8,7 @@
   "license": "ISC",
   "homepage": "https://github.com/lgope/Natours#readme",
   "scripts": {
-    "start": "node Server.js",
+    "start": "nodemon Server.js",
     "dev": "nodemon Server.js",
     "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
