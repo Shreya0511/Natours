@@ -1,4 +1,4 @@
-import Review from "./../models/reviewModel.js";
+import Review from "../models/reviewModel.js";
 // import catchAsync from './../utils/catchAsync.js';
 import * as factory from "./handlerFactory.js";
 

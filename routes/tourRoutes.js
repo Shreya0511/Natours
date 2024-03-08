@@ -1,6 +1,6 @@
 import express from "express";
-import * as tourController from "./../controllers/tourController.js";
-import { protect, restrictTo } from "./../controllers/authController.js";
+import * as tourController from "../controllers/tourController.js";
+import { protect, restrictTo } from "../controllers/authController.js";
 import reviewRouter from "./../routes/reviewRoutes.js";
 
 const router = express.Router();

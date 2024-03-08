@@ -1,9 +1,9 @@
 import multer from "multer";
 import sharp from "sharp";
-import Tour from "./../models/tourModel.js";
-import catchAsync from "./../utils/catchAsync.js";
+import Tour from "../models/tourModel.js";
+import catchAsync from "../utils/catchAsync.js";
 import * as factory from "./handlerFactory.js";
-import AppError from "./../utils/appError.js";
+import AppError from "../utils/appError.js";
 
 const multerStorage = multer.memoryStorage();
 

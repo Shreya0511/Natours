@@ -1,5 +1,5 @@
-import AppError from "./../utils/appError.js";
-import ErrorStack from "./../models/errorModel.js";
+import AppError from "../utils/appError.js";
+import ErrorStack from "../models/errorModel.js";
 
 const saveError = async err => {
   const newError = await ErrorStack.create({
